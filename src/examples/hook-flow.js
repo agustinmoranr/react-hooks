@@ -8,58 +8,6 @@
 
 import * as React from 'react'
 
-function Child() {
-  console.log('%c    Child: render start', 'color: MediumSpringGreen')
-
-  const [count, setCount] = React.useState(() => {
-    console.log('%c    Child: useState(() => 0)', 'color: tomato')
-    return 0
-  })
-
-  React.useEffect(() => {
-    console.log('%c    Child: useEffect(() => {})', 'color: LightCoral')
-    return () => {
-      console.log(
-        '%c    Child: useEffect(() => {}) cleanup 🧹',
-        'color: LightCoral',
-      )
-    }
-  })
-
-  React.useEffect(() => {
-    console.log(
-      '%c    Child: useEffect(() => {}, [])',
-      'color: MediumTurquoise',
-    )
-    return () => {
-      console.log(
-        '%c    Child: useEffect(() => {}, []) cleanup 🧹',
-        'color: MediumTurquoise',
-      )
-    }
-  }, [])
-
-  React.useEffect(() => {
-    console.log('%c    Child: useEffect(() => {}, [count])', 'color: HotPink')
-    return () => {
-      console.log(
-        '%c    Child: useEffect(() => {}, [count]) cleanup 🧹',
-        'color: HotPink',
-      )
-    }
-  }, [count])
-
-  const element = (
-    <button onClick={() => setCount(previousCount => previousCount + 1)}>
-      {count}
-    </button>
-  )
-
-  console.log('%c    Child: render end', 'color: MediumSpringGreen')
-
-  return element
-}
-
 function App() {
   console.log('%cApp: render start', 'color: MediumSpringGreen')
 
@@ -124,4 +72,105 @@ function App() {
   return element
 }
 
+function Child() {
+  console.log('%c    Child: render start', 'color: MediumSpringGreen')
+
+  const [count, setCount] = React.useState(() => {
+    console.log('%c    Child: useState(() => 0)', 'color: tomato')
+    return 0
+  })
+
+  React.useEffect(() => {
+    console.log('%c    Child: useEffect(() => {})', 'color: LightCoral')
+    return () => {
+      console.log(
+        '%c    Child: useEffect(() => {}) cleanup 🧹',
+        'color: LightCoral',
+      )
+    }
+  })
+
+  React.useEffect(() => {
+    console.log(
+      '%c    Child: useEffect(() => {}, [])',
+      'color: MediumTurquoise',
+    )
+    return () => {
+      console.log(
+        '%c    Child: useEffect(() => {}, []) cleanup 🧹',
+        'color: MediumTurquoise',
+      )
+    }
+  }, [])
+
+  React.useEffect(() => {
+    console.log('%c    Child: useEffect(() => {}, [count])', 'color: HotPink')
+    return () => {
+      console.log(
+        '%c    Child: useEffect(() => {}, [count]) cleanup 🧹',
+        'color: HotPink',
+      )
+    }
+  }, [count])
+
+  const element = (
+    <button onClick={() => setCount(previousCount => previousCount + 1)}>
+      {count}
+    </button>
+  )
+
+  console.log('%c    Child: render end', 'color: MediumSpringGreen')
+
+  return element
+}
+
 export default App
+
+//Resultado
+//Mount del componente App
+// App: render start
+// hook-flow.js:17 App: useState(() => false)
+// hook-flow.js:17 App: render end
+// hook-flow.js:17 App: useEffect(() => {})
+// hook-flow.js:17 App: useEffect(() => {}, [])
+// hook-flow.js:17 App: useEffect(() => {}, [showChild])
+// ===================================================================
+
+//Mount del componente Child y update del componente App
+// hook-flow.js:17 App: render start
+// hook-flow.js:17 App: render end
+// hook-flow.js:17     Child: render start
+// hook-flow.js:17     Child: useState(() => 0)
+// hook-flow.js:17     Child: render end
+// hook-flow.js:17 App: useEffect(() => {}) cleanup 🧹
+// hook-flow.js:17 App: useEffect(() => {}, [showChild]) cleanup 🧹
+// hook-flow.js:17     Child: useEffect(() => {})
+// hook-flow.js:17     Child: useEffect(() => {}, [])
+// hook-flow.js:17     Child: useEffect(() => {}, [count])
+// hook-flow.js:17 App: useEffect(() => {})
+// hook-flow.js:17 App: useEffect(() => {}, [showChild])
+
+//update del componente Child
+// ===================================================================
+// hook-flow.js:17     Child: render start
+// hook-flow.js:17     Child: render end
+// hook-flow.js:17     Child: useEffect(() => {}) cleanup 🧹
+// hook-flow.js:17     Child: useEffect(() => {}, [count]) cleanup 🧹
+// hook-flow.js:17     Child: useEffect(() => {})
+// hook-flow.js:17     Child: useEffect(() => {}, [count])
+// ===================================================================
+
+//update App y unmount del componente Child
+// App: render start
+// hook-flow.js:17 App: render end
+// hook-flow.js:17     Child: useEffect(() => {}) cleanup 🧹
+// hook-flow.js:17     Child: useEffect(() => {}, []) cleanup 🧹
+// hook-flow.js:17     Child: useEffect(() => {}, [count]) cleanup 🧹
+// hook-flow.js:17 App: useEffect(() => {}) cleanup 🧹
+// hook-flow.js:17 App: useEffect(() => {}, [showChild]) cleanup 🧹
+// hook-flow.js:17 App: useEffect(() => {})
+// hook-flow.js:17 App: useEffect(() => {}, [showChild])
+
+//Notas: los cleanups de un componente que se desmonta ocurren primero que los de un componente que recive un updates
+
+//Los mount ocurren antes que los updates
