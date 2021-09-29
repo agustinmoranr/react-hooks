@@ -2,42 +2,9 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import {useLocalStorageState} from '../utils'
 
-function Board() {
-  // 🐨 squares is the state for this component. Add useState for squares
-  const squares = Array(9).fill(null)
-
-  // 🐨 We'll need the following bits of derived state:
-  // - nextValue ('X' or 'O')
-  // - winner ('X', 'O', or null)
-  // - status (`Winner: ${winner}`, `Scratch: Cat's game`, or `Next player: ${nextValue}`)
-  // 💰 I've written the calculations for you! So you can use my utilities
-  // below to create these variables
-
-  // This is the function your square click handler will call. `square` should
-  // be an index. So if they click the center square, this will be `4`.
-  function selectSquare(square) {
-    // 🐨 first, if there's already winner or there's already a value at the
-    // given square index (like someone clicked a square that's already been
-    // clicked), then return early so we don't make any state changes
-    //
-    // 🦉 It's typically a bad idea to mutate or directly change state in React.
-    // Doing so can lead to subtle bugs that can easily slip into production.
-    //
-    // 🐨 make a copy of the squares array
-    // 💰 `[...squares]` will do it!)
-    //
-    // 🐨 set the value of the square that was selected
-    // 💰 `squaresCopy[square] = nextValue`
-    //
-    // 🐨 set the squares to your copy
-  }
-
-  function restart() {
-    // 🐨 reset the squares
-    // 💰 `Array(9).fill(null)` will do it!
-  }
-
+function Board({squares, selectSquare}) {
   function renderSquare(i) {
     return (
       <button className="square" onClick={() => selectSquare(i)}>
@@ -47,37 +14,102 @@ function Board() {
   }
 
   return (
-    <div>
-      {/* 🐨 put the status in the div below */}
-      <div className="status">STATUS</div>
-      <div className="board-row">
-        {renderSquare(0)}
-        {renderSquare(1)}
-        {renderSquare(2)}
+    <div style={{display: 'flex', alignItems: 'center'}}>
+      <div style={{padding: '1rem'}}>
+        <div className="board-row">
+          {renderSquare(0)}
+          {renderSquare(1)}
+          {renderSquare(2)}
+        </div>
+        <div className="board-row">
+          {renderSquare(3)}
+          {renderSquare(4)}
+          {renderSquare(5)}
+        </div>
+        <div className="board-row">
+          {renderSquare(6)}
+          {renderSquare(7)}
+          {renderSquare(8)}
+        </div>
       </div>
-      <div className="board-row">
-        {renderSquare(3)}
-        {renderSquare(4)}
-        {renderSquare(5)}
-      </div>
-      <div className="board-row">
-        {renderSquare(6)}
-        {renderSquare(7)}
-        {renderSquare(8)}
-      </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
 function Game() {
+  const [LSSquaresHistory, setLSSquaresHistory] = useLocalStorageState(
+    'tic-toe-game-history',
+    [Array(9).fill(null)],
+  )
+  const [LSStepHistory, setLSStepHistory] = useLocalStorageState(
+    'tic-toe-game-step',
+    0,
+  )
+  const currentSquares = LSSquaresHistory[LSStepHistory]
+
+  const winner = calculateWinner(currentSquares)
+  const nextValue = calculateNextValue(currentSquares) // X || O
+  const status = calculateStatus(winner, currentSquares, nextValue)
+  const showHistoryGame = LSSquaresHistory.length > 1
+
+  function selectSquare(squareIndex) {
+    const isPrevSelected = currentSquares[squareIndex]
+    if (isPrevSelected || winner) return
+
+    const newHistory = LSSquaresHistory.slice(0, LSStepHistory + 1)
+    const squaresCopy = [...currentSquares]
+    squaresCopy[squareIndex] = nextValue
+    setLSSquaresHistory([...newHistory, squaresCopy])
+    setLSStepHistory(newHistory.length)
+  }
+
+  function restart() {
+    const defaultValue = Array(9).fill(null)
+    setLSSquaresHistory([defaultValue])
+    setLSStepHistory(0)
+  }
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <div className="status">{status}</div>
+        <Board squares={currentSquares} selectSquare={selectSquare} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
       </div>
+      {showHistoryGame && (
+        <History
+          historyGames={LSSquaresHistory}
+          currentStep={LSStepHistory}
+          updateStep={setLSStepHistory}
+        />
+      )}
+    </div>
+  )
+}
+
+function History({historyGames, currentStep, updateStep}) {
+  const renderSteps = historyGames.map((squareGame, index) => {
+    const isCurrentStep = index === currentStep
+    const description = index === 0 ? 'Game start' : index
+    return (
+      <button
+        disabled={isCurrentStep}
+        key={index}
+        onClick={() => updateStep(index)}
+        style={{padding: '0.325rem', margin: '0.25rem'}}
+      >
+        {description}
+      </button>
+    )
+  })
+
+  return (
+    <div style={{padding: '1rem', textAlign: 'center'}}>
+      <p>History Game</p>
+      <p>Steps</p>
+      {renderSteps}
     </div>
   )
 }
