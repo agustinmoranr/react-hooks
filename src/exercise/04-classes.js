@@ -22,6 +22,7 @@ const Board = () => {
 
   React.useEffect(() => {
     updateLocalStorage()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [squares])
 
   function selectSquare(square) {
